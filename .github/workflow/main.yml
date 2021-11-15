@@ -1,0 +1,26 @@
+name: Production workflow
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: #agentname
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+
+      - name: Build image
+        run: |
+         vault kv get -address="https://"your-vault-address"" -field=env "path-of-your-env-file-in-vault" > .env
+         npm install
+         CI= npm run build
+          
+      - name: Deploy to netlify
+        uses: netlify/actions/cli@master
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        with:
+          args: deploy --dir=build --prod
+          secrets: '["NETLIFY_AUTH_TOKEN", "NETLIFY_SITE_ID"]'
